@@ -1,6 +1,7 @@
 package pl.wsi.nostale.api;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,8 +47,33 @@ public class NostaleApi {
 		socket = new Socket(HOST, port);
 		doWork = true;
 		messages = new ConcurrentLinkedQueue<>();
-
 		worker.start();
+		loggerStart();
+	}
+
+	private void loggerStart() {
+		while (isWorking()) {
+			if (!isEmpty()) {
+				String msg = getMessage();
+
+				// This is an example of receiving messages.
+				JsonObject jsonMsg = new Gson().fromJson(msg, JsonObject.class);
+				int messageType = jsonMsg.get("type").getAsInt();
+				if (messageType == Type.packet_send.ordinal()) {
+					System.out.println("[SEND]: " + jsonMsg.get("packet").getAsString());
+				} else if (messageType == Type.packet_recv.ordinal()) {
+					System.out.println("[RECV]: " + jsonMsg.get("packet").getAsString());
+				}
+			} else {
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					// Handle InterruptedException if needed
+					e.printStackTrace();
+				}
+			}
+		}
+		close();
 	}
 
 	private int sendData(String data) throws IOException {
