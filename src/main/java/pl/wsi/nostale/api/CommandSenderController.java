@@ -15,9 +15,14 @@ class CommandSenderController {
 
 	private final NostaleApi nostaleApi;
 
-	@GetMapping("/send/{packet}")
-	public Boolean send(@PathVariable("packet") String packet) throws IOException {
-		return nostaleApi.sendPacket(packet);
+	@GetMapping("/walk/{x}/{y}")
+	public Boolean send(@PathVariable("x") Integer x, @PathVariable("y") Integer y) throws IOException {
+		return nostaleApi.playerWalk(x, y);
+	}
+
+	@GetMapping("/querryPlayerInfo")
+	public Boolean querryPlayerInfo() throws IOException {
+		return nostaleApi.queryPlayerInformation();
 	}
 
 }
