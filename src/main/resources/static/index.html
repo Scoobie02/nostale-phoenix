@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TaskExecutor</title>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();
+            const steps = document.getElementById('text').value;
+            const interval = document.getElementById('').value;
+            const response = await fetch('/executeTask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(
+                    {
+                        steps: steps,
+                        interval: interval
+                    }
+                ),
+            });
+            const result = await response.text();
+            document.getElementById('result').innerText = result;
+        }
+    </script>
+</head>
+<body>
+    <form action="/executeTask" method="post">
+        <label for="text">Enter list of packets you want to execute:</label>
+        <br/>
+        <textarea id="text" name="steps" rows="10" cols="50"></textarea>
+        <br/>
+        <label for="interval">Enter interval in seconds:</label>
+        <br/>
+        <input type="number" id="interval" name="interval" required/>
+        <br/>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="result"></div>
+</body>
+</html>

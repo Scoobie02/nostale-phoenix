@@ -13,42 +13,30 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class NostaleApi {
+
+
 	public static enum Type {
-		packet_send,
-		packet_recv,
-		attack,
-		player_skill,
-		player_walk,
-		pet_skill,
-		partner_skill,
-		pets_walk,
-		pick_up,
-		collect,
-		start_bot,
-		stop_bot,
-		continue_bot,
-		load_settings,
-		start_minigame_bot,
-		stop_minigame_bot,
-		query_player_info,
-		query_inventory,
-		query_skills_info,
-		query_map_entities
+		packet_send, packet_recv, attack, player_skill, player_walk, pet_skill, partner_skill, pets_walk, pick_up, collect, start_bot, stop_bot, continue_bot, load_settings, start_minigame_bot, stop_minigame_bot, query_player_info, query_inventory, query_skills_info, query_map_entities
 	}
 
 	private static final String HOST = "127.0.0.1";
 
 	private final Socket socket;
 	private boolean doWork;
-	private final Queue<String> messages;
+	private final Queue<String> messages =new ConcurrentLinkedQueue<>();
 	Thread worker = new Thread(this::work);
 
 	public NostaleApi(int port) throws IOException {
 		socket = new Socket(HOST, port);
 		doWork = true;
-		messages = new ConcurrentLinkedQueue<>();
 		worker.start();
 		loggerStart();
+	}
+
+	public NostaleApi() {
+		//noop
+		socket = null;
+		doWork = true;
 	}
 
 	private void loggerStart() {
@@ -90,8 +78,7 @@ public class NostaleApi {
 		byte[] buffer = new byte[bufferSize];
 		StringBuilder data = new StringBuilder();
 
-		try (
-				InputStream inputStream = socket.getInputStream()) {
+		try (InputStream inputStream = socket.getInputStream()) {
 			while (doWork) {
 				int bytesRead = inputStream.read(buffer);
 
@@ -143,14 +130,20 @@ public class NostaleApi {
 		return messages.isEmpty();
 	}
 
-	public boolean sendPacket(String packet) throws IOException {
-		Map<String, Object> data = new HashMap<>();
-		data.put("type", Type.packet_send.ordinal());
-		data.put("packet", packet);
+	public boolean sendPacket(String packet) {
+		try {
 
-		String json_data = new Gson().toJson(data);
+			Map<String, Object> data = new HashMap<>();
+			data.put("type", Type.packet_send.ordinal());
+			data.put("packet", packet);
 
-		return sendData(json_data) == json_data.length() + 1;
+			String json_data = new Gson().toJson(data);
+
+			return sendData(json_data) == json_data.length() + 1;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	public boolean recvPacket(String packet) throws IOException {
